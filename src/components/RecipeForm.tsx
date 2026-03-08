@@ -209,7 +209,7 @@ export function RecipeForm() {
           <div className="flex items-center gap-2">
             {/* Connection status indicator */}
             {connectionOk === true && (
-              <span className="flex items-center gap-1 text-xs text-green-600 font-body">
+              <span className="flex items-center gap-1 text-xs text-primary font-body">
                 <ShieldCheck className="w-4 h-4" /> DB OK
               </span>
             )}
