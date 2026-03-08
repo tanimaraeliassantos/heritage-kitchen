@@ -32,7 +32,7 @@ export function useVoiceTranscription({
       ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
       : null;
 
-  const isSupported = !!SpeechRecognition;
+  const isSupported = !!SpeechRecognitionAPI;
 
   const startListening = useCallback(() => {
     if (!SpeechRecognition) {
