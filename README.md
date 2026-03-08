@@ -1,73 +1,70 @@
-# Welcome to your Lovable project
+## Heritage Kitchen
 
-## Project info
+Heritage Kitchen is a dynamic, user-friendly application designed to help home cooks organize, store, and discover recipes from various cultural backgrounds. Developed as a passion project during the SheBuilds Hackathon, this app focuses on accessibility, intuitive one-handed navigation, and a modern, engaging interface.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Heritage Kitchen allows users to easily add their favorite recipes, view ingredients and instructions, and enjoy a seamless cooking experience whether they are in the kitchen or on the go.
 
-## How can I edit this code?
+See the hosted application here.
 
-There are several ways of editing your application.
+### Project Overview
 
-**Use Lovable**
+This project was built during the SheBuilds Hackathon with a specific mission: to create a digital space that simplifies recipe management for busy households. Key design principles included:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Accessibility First: Large, readable typography and high-contrast elements for easy viewing.
 
-Changes made via Lovable will be committed automatically to this repo.
+SAHM-Friendly UX: One-handed navigation zones that keep primary actions within reach, perfect for multitasking in the kitchen.
 
-**Use your preferred IDE**
+Modern Aesthetics: A warm, inviting color palette and smooth animations powered by Framer Motion to make the experience both fun and functional.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## How it was built
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Heritage Kitchen was developed during the SheBuilds Hackathon using an AI-first workflow. Instead of traditional line-by-line coding, I utilized Lovable to orchestrate the full-stack architecture.
 
-Follow these steps:
+Vibecoding Workflow: I acted as the creative director, describing the app's functionality and "vibe" in plain English. The AI translated these goals into a functional React codebase in real-time, allowing for rapid iteration.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Intelligent Orchestration: Lovable managed the underlying infrastructure, connecting the frontend to Supabase for database management and authentication. This allowed me to focus entirely on UX design and accessibility.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Rapid Prototyping: By leveraging AI as a pair programmer, I was able to move from a conceptual idea to a deployed, GitHub-backed application within the intense timeline of the hackathon.
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Start the App
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+**Install dependencies**
+```
+Bash
+npm install
 ```
 
-**Edit a file directly in GitHub**
+**Run locally**
+```
+Bash
+npm run start
+```
+**Deploy**
+```
+Bash
+npm run deploy
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Features
+- Personalized Recipe Library: Easily add and manage your family's favorite dishes.
 
-**Use GitHub Codespaces**
+- One-Handed Navigation: Optimized UI placement for quick access to actions while multitasking.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Accessible Design: WCAG-compliant color choices and touch-friendly button targets.
 
-## What technologies are used for this project?
+- Smooth Interaction: Intuitive animations and tactile feedback for a premium user experience.
 
-This project is built with:
+## Technologies
+Frontend: React with Tailwind CSS
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Animations: Framer Motion
 
-## How can I deploy this project?
+Database/Backend: Supabase
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Deployment: Vercel
 
-## Can I connect a custom domain to my Lovable project?
+## Author
+Your Name
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### Version
+1.0.0
