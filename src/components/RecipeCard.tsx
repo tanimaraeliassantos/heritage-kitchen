@@ -1,5 +1,6 @@
 import { Clock, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import heroImage from '@/assets/hero-kitchen.jpg';
 
 interface RecipeCardProps {
@@ -25,9 +26,10 @@ export function RecipeCard({
   const totalTime = (prepTime || 0) + (cookTime || 0);
 
   return (
-    <button
+    <motion.button
       onClick={() => navigate(`/recipe/${id}`)}
-      className="group bg-card rounded-lg shadow-card overflow-hidden text-left w-full transition-shadow hover:shadow-elevated animate-fade-in"
+      whileTap={{ scale: 0.97 }}
+      className="group bg-card rounded-lg shadow-card overflow-hidden text-left w-full transition-shadow hover:shadow-elevated"
     >
       <div className="aspect-[4/3] overflow-hidden">
         <img
@@ -37,30 +39,30 @@ export function RecipeCard({
           loading="lazy"
         />
       </div>
-      <div className="p-3">
-        <h3 className="font-heading font-semibold text-sm text-foreground leading-tight line-clamp-2">
+      <div className="p-3.5">
+        <h3 className="font-heading font-semibold text-base text-foreground leading-tight line-clamp-2">
           {title}
         </h3>
         {cultureOrigin && (
-          <span className="text-[11px] text-muted-foreground font-body mt-1 block">
+          <span className="text-xs text-muted-foreground font-body mt-1.5 block">
             {cultureOrigin}
           </span>
         )}
-        <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
           {totalTime > 0 && (
             <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
+              <Clock className="w-3.5 h-3.5" />
               {totalTime}m
             </span>
           )}
           {servings && (
             <span className="flex items-center gap-1">
-              <Users className="w-3 h-3" />
+              <Users className="w-3.5 h-3.5" />
               {servings}
             </span>
           )}
         </div>
       </div>
-    </button>
+    </motion.button>
   );
 }

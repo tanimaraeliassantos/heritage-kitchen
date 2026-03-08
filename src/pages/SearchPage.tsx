@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { RecipeCard } from '@/components/RecipeCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { PageTransition, StaggerContainer, StaggerItem } from '@/components/PageTransition';
 import {
   Sheet,
   SheetContent,
@@ -13,6 +14,7 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { SlidersHorizontal } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const CULTURE_OPTIONS = ['Italian', 'Mexican', 'Indian', 'Chinese', 'Japanese', 'French', 'American', 'Thai', 'Greek', 'Ethiopian'];
 const TAG_OPTIONS = ['Holiday', 'Vegan', 'Vegetarian', 'Gluten-Free', 'Quick', 'Dessert', 'Comfort Food', 'Healthy'];
@@ -61,25 +63,25 @@ const SearchPage = () => {
   const activeFilters = selectedCultures.length + selectedTags.length;
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <PageTransition className="min-h-screen bg-background pb-28">
       <div className="px-4 pt-6 pb-4 max-w-lg mx-auto">
         <h1 className="text-2xl font-heading font-bold text-foreground">Search</h1>
         <div className="flex gap-2 mt-4">
           <div className="relative flex-1">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name, culture, ingredient..."
-              className="pl-10 rounded-lg"
+              className="pl-11 rounded-pill h-12"
             />
           </div>
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="min-w-[48px] min-h-[48px] relative">
+              <Button variant="outline" size="icon" className="relative">
                 <SlidersHorizontal className="w-4 h-4" />
                 {activeFilters > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-[10px] rounded-full flex items-center justify-center font-body">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-secondary-foreground text-[10px] rounded-full flex items-center justify-center font-body">
                     {activeFilters}
                   </span>
                 )}
@@ -94,17 +96,18 @@ const SearchPage = () => {
                   <h3 className="text-sm font-body font-semibold text-foreground mb-2">Culture</h3>
                   <div className="flex flex-wrap gap-2">
                     {CULTURE_OPTIONS.map((c) => (
-                      <button
+                      <motion.button
                         key={c}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => toggleFilter(c, selectedCultures, setSelectedCultures)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-body min-h-[36px] transition-colors ${
+                        className={`px-4 py-2 rounded-pill text-sm font-body min-h-[44px] transition-colors ${
                           selectedCultures.includes(c)
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-muted text-muted-foreground'
                         }`}
                       >
                         {c}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
@@ -112,24 +115,24 @@ const SearchPage = () => {
                   <h3 className="text-sm font-body font-semibold text-foreground mb-2">Tags</h3>
                   <div className="flex flex-wrap gap-2">
                     {TAG_OPTIONS.map((t) => (
-                      <button
+                      <motion.button
                         key={t}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => toggleFilter(t, selectedTags, setSelectedTags)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-body min-h-[36px] transition-colors ${
+                        className={`px-4 py-2 rounded-pill text-sm font-body min-h-[44px] transition-colors ${
                           selectedTags.includes(t)
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-muted text-muted-foreground'
                         }`}
                       >
                         {t}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
                 {activeFilters > 0 && (
                   <Button
                     variant="ghost"
-                    size="sm"
                     onClick={() => {
                       setSelectedCultures([]);
                       setSelectedTags([]);
@@ -147,31 +150,32 @@ const SearchPage = () => {
 
       <div className="px-4 max-w-lg mx-auto">
         {!user ? (
-          <p className="text-center text-sm text-muted-foreground font-body py-16">
+          <p className="text-center text-base text-muted-foreground font-body py-16">
             Sign in to search your recipes.
           </p>
         ) : filtered.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground font-body py-16">
+          <p className="text-center text-base text-muted-foreground font-body py-16">
             No recipes match your search.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <StaggerContainer className="grid grid-cols-2 gap-4">
             {filtered.map((recipe) => (
-              <RecipeCard
-                key={recipe.id}
-                id={recipe.id}
-                title={recipe.title}
-                cultureOrigin={recipe.culture_origin}
-                imageUrl={recipe.image_url}
-                prepTime={recipe.prep_time_minutes}
-                cookTime={recipe.cook_time_minutes}
-                servings={recipe.servings}
-              />
+              <StaggerItem key={recipe.id}>
+                <RecipeCard
+                  id={recipe.id}
+                  title={recipe.title}
+                  cultureOrigin={recipe.culture_origin}
+                  imageUrl={recipe.image_url}
+                  prepTime={recipe.prep_time_minutes}
+                  cookTime={recipe.cook_time_minutes}
+                  servings={recipe.servings}
+                />
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         )}
       </div>
-    </div>
+    </PageTransition>
   );
 };
 

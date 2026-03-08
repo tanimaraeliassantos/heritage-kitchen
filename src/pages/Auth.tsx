@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import { PageTransition } from '@/components/PageTransition';
+import { motion } from 'framer-motion';
 
 const Auth = () => {
   const { signIn, signUp } = useAuth();
@@ -39,29 +41,31 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <PageTransition className="min-h-screen bg-background flex flex-col">
       <div className="px-4 py-3">
-        <button
+        <motion.button
+          whileTap={{ scale: 0.9 }}
           onClick={() => navigate('/')}
-          className="min-w-[48px] min-h-[48px] flex items-center justify-center text-foreground"
+          className="min-w-[48px] min-h-[48px] flex items-center justify-center text-foreground rounded-pill"
           aria-label="Go back"
         >
           <ArrowLeft className="w-5 h-5" />
-        </button>
+        </motion.button>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-6 pb-16">
-        <div className="w-full max-w-sm">
+      {/* Form pushed toward bottom for thumb reach */}
+      <div className="flex-1 flex flex-col justify-end px-6 pb-12">
+        <div className="w-full max-w-sm mx-auto">
           <h1 className="text-3xl font-heading font-bold text-foreground mb-2">
             {isSignUp ? 'Create Account' : 'Welcome Back'}
           </h1>
-          <p className="text-sm text-muted-foreground font-body mb-8">
+          <p className="text-base text-muted-foreground font-body mb-8">
             {isSignUp
               ? 'Start preserving your family recipes.'
               : 'Sign in to your recipe vault.'}
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <Label className="font-body text-sm">Email</Label>
               <Input
@@ -70,7 +74,7 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
                 required
-                className="mt-1 rounded-sm"
+                className="mt-1.5 rounded-pill h-12 px-5"
               />
             </div>
             <div>
@@ -82,10 +86,10 @@ const Auth = () => {
                 placeholder="••••••••"
                 required
                 minLength={6}
-                className="mt-1 rounded-sm"
+                className="mt-1.5 rounded-pill h-12 px-5"
               />
             </div>
-            <Button type="submit" disabled={loading} className="w-full min-h-[48px]">
+            <Button type="submit" disabled={loading} className="w-full" size="lg">
               {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
               {isSignUp ? 'Create Account' : 'Sign In'}
             </Button>
@@ -95,14 +99,14 @@ const Auth = () => {
             {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
             <button
               onClick={() => setIsSignUp(!isSignUp)}
-              className="text-primary font-medium underline-offset-2 hover:underline"
+              className="text-primary font-semibold underline-offset-2 hover:underline"
             >
               {isSignUp ? 'Sign In' : 'Sign Up'}
             </button>
           </p>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 
