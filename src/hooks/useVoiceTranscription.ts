@@ -25,11 +25,11 @@ export function useVoiceTranscription({
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
 
-  const SpeechRecognition =
+  const SpeechRecognitionAPI =
     typeof window !== 'undefined'
-      ? window.SpeechRecognition || (window as any).webkitSpeechRecognition
+      ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
       : null;
 
   const isSupported = !!SpeechRecognition;
