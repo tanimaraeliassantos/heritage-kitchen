@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { PageTransition } from '@/components/PageTransition';
+import { motion } from 'framer-motion';
 import heroImage from '@/assets/hero-kitchen.jpg';
 
 interface EditableRecipe {
@@ -152,7 +154,7 @@ const RecipeDetail = () => {
   if (!recipe) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground font-body">Recipe not found.</p>
+        <p className="text-muted-foreground font-body text-base">Recipe not found.</p>
       </div>
     );
   }
@@ -165,13 +167,13 @@ const RecipeDetail = () => {
       if (parsed.amount && parsed.unit) {
         const converted = convertUnit(parsed.amount, parsed.unit, unitSystem);
         return (
-          <li key={i} className="text-sm font-body text-foreground py-1.5 border-b border-border last:border-0">
+          <li key={i} className="text-base font-body text-foreground py-2 border-b border-border last:border-0">
             <span className="font-medium">{converted.value} {converted.unit}</span> {parsed.ingredient}
           </li>
         );
       }
       return (
-        <li key={i} className="text-sm font-body text-foreground py-1.5 border-b border-border last:border-0">
+        <li key={i} className="text-base font-body text-foreground py-2 border-b border-border last:border-0">
           {ing}
         </li>
       );
@@ -179,13 +181,13 @@ const RecipeDetail = () => {
     if (ing.amount && ing.unit) {
       const converted = convertUnit(parseFloat(ing.amount), ing.unit, unitSystem);
       return (
-        <li key={i} className="text-sm font-body text-foreground py-1.5 border-b border-border last:border-0">
+        <li key={i} className="text-base font-body text-foreground py-2 border-b border-border last:border-0">
           <span className="font-medium">{converted.value} {converted.unit}</span> {ing.name}
         </li>
       );
     }
     return (
-      <li key={i} className="text-sm font-body text-foreground py-1.5 border-b border-border last:border-0">
+      <li key={i} className="text-base font-body text-foreground py-2 border-b border-border last:border-0">
         {ing.amount} {ing.unit} {ing.name}
       </li>
     );
@@ -194,7 +196,7 @@ const RecipeDetail = () => {
   const isOwner = user && recipe.user_id === user.id;
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <PageTransition className="min-h-screen bg-background pb-8">
       {/* Hero */}
       <div className="relative h-[35vh] overflow-hidden">
         <img
@@ -203,37 +205,43 @@ const RecipeDetail = () => {
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-        <button
+        <motion.button
+          whileTap={{ scale: 0.9 }}
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
+          className="absolute top-4 left-4 w-12 h-12 min-w-[48px] min-h-[48px] bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
           aria-label="Go back"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
-        </button>
+        </motion.button>
         {isOwner && !editing && (
-          <button
+          <motion.button
+            whileTap={{ scale: 0.9 }}
             onClick={startEditing}
-            className="absolute top-4 right-4 w-10 h-10 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
+            className="absolute top-4 right-4 w-12 h-12 min-w-[48px] min-h-[48px] bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
             aria-label="Edit recipe"
           >
             <Pencil className="w-4 h-4 text-foreground" />
-          </button>
+          </motion.button>
         )}
       </div>
 
       <div className="px-4 max-w-lg mx-auto -mt-8 relative z-10">
         {/* Edit mode toolbar */}
         {editing && editData && (
-          <div className="flex gap-2 mb-4">
-            <Button onClick={handleSave} disabled={saving} className="flex-1 min-h-[48px]">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex gap-2 mb-4"
+          >
+            <Button onClick={handleSave} disabled={saving} className="flex-1">
               <Save className="w-4 h-4 mr-2" />
               {saving ? 'Saving…' : 'Save'}
             </Button>
-            <Button variant="outline" onClick={cancelEditing} disabled={saving} className="min-h-[48px]">
+            <Button variant="outline" onClick={cancelEditing} disabled={saving}>
               <X className="w-4 h-4 mr-2" />
               Cancel
             </Button>
-          </div>
+          </motion.div>
         )}
 
         {/* Title */}
@@ -241,7 +249,7 @@ const RecipeDetail = () => {
           <Input
             value={editData.title}
             onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-            className="text-2xl font-heading font-bold"
+            className="text-2xl font-heading font-bold rounded-pill h-12 px-5"
             placeholder="Recipe title"
           />
         ) : (
@@ -253,53 +261,56 @@ const RecipeDetail = () => {
           <Input
             value={editData.culture_origin}
             onChange={(e) => setEditData({ ...editData, culture_origin: e.target.value })}
-            className="mt-2 text-sm font-body"
+            className="mt-2 text-base font-body rounded-pill h-12 px-5"
             placeholder="Culture / Origin"
           />
         ) : (
           recipe.culture_origin && (
-            <p className="text-sm text-muted-foreground font-body mt-1">{recipe.culture_origin}</p>
+            <p className="text-base text-muted-foreground font-body mt-1">{recipe.culture_origin}</p>
           )
         )}
 
-        {/* Meta (times, servings) */}
+        {/* Meta */}
         {editing && editData ? (
           <div className="grid grid-cols-3 gap-2 mt-3">
             <div>
-              <label className="text-[11px] text-muted-foreground font-body">Prep (min)</label>
+              <label className="text-xs text-muted-foreground font-body">Prep (min)</label>
               <Input
                 type="number"
                 value={editData.prep_time_minutes ?? ''}
                 onChange={(e) => setEditData({ ...editData, prep_time_minutes: e.target.value ? parseInt(e.target.value) : null })}
+                className="rounded-pill h-12 px-4"
               />
             </div>
             <div>
-              <label className="text-[11px] text-muted-foreground font-body">Cook (min)</label>
+              <label className="text-xs text-muted-foreground font-body">Cook (min)</label>
               <Input
                 type="number"
                 value={editData.cook_time_minutes ?? ''}
                 onChange={(e) => setEditData({ ...editData, cook_time_minutes: e.target.value ? parseInt(e.target.value) : null })}
+                className="rounded-pill h-12 px-4"
               />
             </div>
             <div>
-              <label className="text-[11px] text-muted-foreground font-body">Servings</label>
+              <label className="text-xs text-muted-foreground font-body">Servings</label>
               <Input
                 type="number"
                 value={editData.servings ?? ''}
                 onChange={(e) => setEditData({ ...editData, servings: e.target.value ? parseInt(e.target.value) : null })}
+                className="rounded-pill h-12 px-4"
               />
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground font-body">
+          <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground font-body">
             {totalTime > 0 && (
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" /> {totalTime} min
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4" /> {totalTime} min
               </span>
             )}
             {recipe.servings && (
-              <span className="flex items-center gap-1">
-                <Users className="w-3.5 h-3.5" /> {recipe.servings} servings
+              <span className="flex items-center gap-1.5">
+                <Users className="w-4 h-4" /> {recipe.servings} servings
               </span>
             )}
           </div>
@@ -308,18 +319,19 @@ const RecipeDetail = () => {
         {/* Tags */}
         {editing && editData ? (
           <div className="mt-3">
-            <label className="text-[11px] text-muted-foreground font-body">Tags (comma-separated)</label>
+            <label className="text-xs text-muted-foreground font-body">Tags (comma-separated)</label>
             <Input
               value={editData.tags.join(', ')}
               onChange={(e) => setEditData({ ...editData, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
               placeholder="e.g. Mexican, Holiday, Vegan"
+              className="rounded-pill h-12 px-5"
             />
           </div>
         ) : (
           recipe.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
+            <div className="flex flex-wrap gap-2 mt-3">
               {recipe.tags.map((tag: string) => (
-                <span key={tag} className="text-[11px] bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full font-body">
+                <span key={tag} className="text-xs bg-primary/15 text-primary px-3 py-1.5 rounded-pill font-body font-medium">
                   {tag}
                 </span>
               ))}
@@ -341,19 +353,20 @@ const RecipeDetail = () => {
                     <Input
                       value={typeof ing === 'string' ? ing : `${ing.amount || ''} ${ing.unit || ''} ${ing.name || ''}`.trim()}
                       onChange={(e) => updateIngredient(i, e.target.value)}
-                      className="flex-1 text-sm font-body"
+                      className="flex-1 text-base font-body rounded-pill h-12 px-5"
                       placeholder="e.g. 200g flour"
                     />
-                    <button
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
                       onClick={() => removeIngredient(i)}
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-destructive hover:bg-destructive/10 shrink-0"
+                      className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-full flex items-center justify-center text-destructive hover:bg-destructive/10 shrink-0"
                       aria-label="Remove ingredient"
                     >
                       <Minus className="w-4 h-4" />
-                    </button>
+                    </motion.button>
                   </div>
                 ))}
-                <Button variant="outline" size="sm" onClick={addIngredient} className="w-full mt-2 min-h-[40px]">
+                <Button variant="outline" size="sm" onClick={addIngredient} className="w-full mt-2">
                   <Plus className="w-4 h-4 mr-1" /> Add Ingredient
                 </Button>
               </div>
@@ -372,46 +385,53 @@ const RecipeDetail = () => {
             <div className="space-y-3">
               {editData.instructions.map((step, i) => (
                 <div key={i} className="flex gap-2 items-start">
-                  <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-body font-semibold flex items-center justify-center shrink-0 mt-1">
+                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-body font-semibold flex items-center justify-center shrink-0 mt-1">
                     {i + 1}
                   </div>
                   <Textarea
                     value={step}
                     onChange={(e) => updateInstruction(i, e.target.value)}
-                    className="flex-1 text-sm font-body min-h-[60px]"
+                    className="flex-1 text-base font-body min-h-[60px] rounded-md"
                     placeholder="Describe this step…"
                   />
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
                     onClick={() => removeInstruction(i)}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-destructive hover:bg-destructive/10 shrink-0 mt-1"
+                    className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-full flex items-center justify-center text-destructive hover:bg-destructive/10 shrink-0 mt-1"
                     aria-label="Remove step"
                   >
                     <Minus className="w-4 h-4" />
-                  </button>
+                  </motion.button>
                 </div>
               ))}
-              <Button variant="outline" size="sm" onClick={addInstruction} className="w-full min-h-[40px]">
+              <Button variant="outline" size="sm" onClick={addInstruction} className="w-full">
                 <Plus className="w-4 h-4 mr-1" /> Add Step
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {(recipe.instructions as string[]).map((step, i) => (
-                <div key={i} className="flex gap-3 animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
-                  <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-body font-semibold flex items-center justify-center shrink-0 mt-0.5">
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.06 }}
+                  className="flex gap-3"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-body font-semibold flex items-center justify-center shrink-0 mt-0.5">
                     {i + 1}
                   </div>
-                  <p className="text-sm font-body text-foreground leading-relaxed">{step}</p>
-                </div>
+                  <p className="text-base font-body text-foreground leading-relaxed">{step}</p>
+                </motion.div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Time Capsule - Memories */}
+        {/* Memories */}
         <div className="mt-10">
           <h2 className="text-lg font-heading font-bold text-foreground mb-1">Memories</h2>
-          <p className="text-xs text-muted-foreground font-body mb-4">
+          <p className="text-sm text-muted-foreground font-body mb-4">
             Attach photos, videos, or voice notes to preserve the story behind this recipe.
           </p>
 
@@ -420,7 +440,12 @@ const RecipeDetail = () => {
           {media.length > 0 && (
             <div className="mt-4 space-y-3">
               {media.map((m) => (
-                <div key={m.id} className="bg-card rounded-lg shadow-card overflow-hidden">
+                <motion.div
+                  key={m.id}
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-card rounded-lg shadow-card overflow-hidden"
+                >
                   {m.media_type === 'photo' && (
                     <img src={m.file_url} alt={m.caption || 'Memory'} className="w-full aspect-video object-cover" loading="lazy" />
                   )}
@@ -433,9 +458,9 @@ const RecipeDetail = () => {
                     </div>
                   )}
                   {m.caption && (
-                    <p className="px-3 py-2 text-xs text-muted-foreground font-body">{m.caption}</p>
+                    <p className="px-3 py-2 text-sm text-muted-foreground font-body">{m.caption}</p>
                   )}
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
@@ -446,14 +471,14 @@ const RecipeDetail = () => {
           <Button
             variant="ghost"
             onClick={handleDelete}
-            className="w-full mt-10 text-destructive min-h-[48px]"
+            className="w-full mt-10 text-destructive"
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Delete Recipe
           </Button>
         )}
       </div>
-    </div>
+    </PageTransition>
   );
 };
 

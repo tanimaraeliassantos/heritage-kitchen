@@ -9,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { PageTransition } from '@/components/PageTransition';
+import { motion } from 'framer-motion';
 
 const STEPS = ['Details', 'Ingredients', 'Instructions', 'Review'];
 const LANGUAGES = [
@@ -199,15 +201,15 @@ export function RecipeForm() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <PageTransition className="min-h-screen bg-background pb-28">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border px-4 py-3">
+      <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-md border-b border-border px-4 py-3">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <h1 className="text-lg font-heading font-bold text-foreground">New Recipe</h1>
           <div className="flex items-center gap-2">
             {/* Connection status indicator */}
             {connectionOk === true && (
-              <span className="flex items-center gap-1 text-xs text-green-600 font-body">
+              <span className="flex items-center gap-1 text-xs text-primary font-body">
                 <ShieldCheck className="w-4 h-4" /> DB OK
               </span>
             )}
@@ -510,6 +512,6 @@ export function RecipeForm() {
           )}
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }
