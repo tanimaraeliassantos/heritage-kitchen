@@ -35,7 +35,7 @@ export function useVoiceTranscription({
   const isSupported = !!SpeechRecognitionAPI;
 
   const startListening = useCallback(() => {
-    if (!SpeechRecognition) {
+    if (!SpeechRecognitionAPI) {
       const msg = 'Speech recognition is not supported in this browser.';
       setError(msg);
       onError?.(msg);
@@ -43,7 +43,7 @@ export function useVoiceTranscription({
     }
 
     setError(null);
-    const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognitionAPI();
     recognition.lang = lang;
     recognition.continuous = continuous;
     recognition.interimResults = false;
