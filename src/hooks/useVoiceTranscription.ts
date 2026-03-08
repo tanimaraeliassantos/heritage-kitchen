@@ -82,7 +82,7 @@ export function useVoiceTranscription({
     recognitionRef.current = recognition;
     recognition.start();
     setIsListening(true);
-  }, [SpeechRecognition, lang, continuous, onResult, onError]);
+  }, [SpeechRecognitionAPI, lang, continuous, onResult, onError]);
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop();
