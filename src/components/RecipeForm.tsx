@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Mic, MicOff, Plus, X, Link, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Plus, X, ClipboardPaste, ArrowLeft, ArrowRight, Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useVoiceTranscription } from '@/hooks/useVoiceTranscription';
-import { scrapeRecipeFromUrl } from '@/utils/recipeScraper';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -25,15 +24,42 @@ const LANGUAGES = [
   { code: 'ar-SA', label: 'العربية' },
 ];
 
+/**
+ * Parse pasted recipe text into title, ingredients, and instructions.
+ * Heuristic: first non-empty line = title, lines with amounts/units = ingredients, rest = instructions.
+ */
+function parseRecipeText(raw: string): { title: string; ingredients: string[]; instructions: string[] } {
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length === 0) return { title: '', ingredients: [], instructions: [] };
+
+  const title = lines[0];
+  const ingredients: string[] = [];
+  const instructions: string[] = [];
+
+  // Simple heuristic: lines that start with a number or fraction → ingredient
+  const ingredientPattern = /^[\d¼½¾⅓⅔⅛⅜⅝⅞]/;
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (ingredientPattern.test(line)) {
+      ingredients.push(line);
+    } else {
+      instructions.push(line);
+    }
+  }
+
+  return { title, ingredients, instructions };
+}
+
 export function RecipeForm() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [importUrl, setImportUrl] = useState('');
-  const [importing, setImporting] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [importText, setImportText] = useState('');
   const [voiceLang, setVoiceLang] = useState('en-US');
+  const [connectionOk, setConnectionOk] = useState<boolean | null>(null);
 
   const [title, setTitle] = useState('');
   const [cultureOrigin, setCultureOrigin] = useState('');
@@ -46,6 +72,31 @@ export function RecipeForm() {
     { name: '', amount: '', unit: '' },
   ]);
   const [instructions, setInstructions] = useState<string[]>(['']);
+
+  // 1. Connection status check on mount
+  useEffect(() => {
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    console.log('[Heritage Kitchen] SUPABASE_URL loaded:', url ? '✅ ' + url : '❌ UNDEFINED');
+    console.log('[Heritage Kitchen] SUPABASE_ANON_KEY loaded:', key ? '✅ (set)' : '❌ UNDEFINED');
+
+    if (!url || !key) {
+      setConnectionOk(false);
+      console.error('[Heritage Kitchen] ❌ Supabase env vars are missing!');
+      return;
+    }
+
+    // Ping the database to confirm connectivity
+    supabase.from('recipes').select('id', { count: 'exact', head: true }).then(({ error, count }) => {
+      if (error) {
+        console.error('[Heritage Kitchen] ❌ DB connectivity test failed:', error.message, error);
+        setConnectionOk(false);
+      } else {
+        console.log('[Heritage Kitchen] ✅ DB connectivity OK. Recipe count:', count);
+        setConnectionOk(true);
+      }
+    });
+  }, []);
 
   const { isListening, startListening, stopListening, isSupported } = useVoiceTranscription({
     lang: voiceLang,
@@ -61,23 +112,23 @@ export function RecipeForm() {
     onError: (err) => toast.error(err),
   });
 
-  const handleImport = async () => {
-    if (!importUrl) return;
-    setImporting(true);
-    try {
-      const data = await scrapeRecipeFromUrl(importUrl);
-      setTitle(data.title);
-      setIngredients(
-        data.ingredients.map((i) => ({ name: i, amount: '', unit: '' }))
-      );
-      setInstructions(data.instructions);
-      setShowImport(false);
-      toast.success('Recipe imported!');
-    } catch (e: any) {
-      toast.error(e.message || 'Failed to import recipe');
-    } finally {
-      setImporting(false);
+  // 5. Manual Import – parse pasted text
+  const handleManualImport = () => {
+    if (!importText.trim()) {
+      toast.error('Paste some recipe text first.');
+      return;
     }
+    const parsed = parseRecipeText(importText);
+    if (parsed.title) setTitle(parsed.title);
+    if (parsed.ingredients.length) {
+      setIngredients(parsed.ingredients.map((i) => ({ name: i, amount: '', unit: '' })));
+    }
+    if (parsed.instructions.length) {
+      setInstructions(parsed.instructions);
+    }
+    setShowImport(false);
+    setImportText('');
+    toast.success('Recipe text parsed! Review and edit the fields.');
   };
 
   const addTag = () => {
@@ -88,29 +139,56 @@ export function RecipeForm() {
   };
 
   const handleSave = async () => {
-    if (!user) {
-      toast.error('Please sign in to save recipes.');
+    // 4. Auth check – verify user is logged in via getUser()
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData.user) {
+      console.error('[Heritage Kitchen] ❌ Auth check failed:', authError?.message || 'No user session');
+      toast.error('You must be logged in to save. Redirecting to login…');
+      setTimeout(() => navigate('/auth'), 1500);
       return;
     }
+    const userId = authData.user.id;
+    console.log('[Heritage Kitchen] ✅ Authenticated user:', userId);
+
     if (!title.trim()) {
       toast.error('Please add a title.');
       return;
     }
-    setSaving(true);
-    try {
-      const { error } = await supabase.from('recipes').insert({
-        user_id: user.id,
-        title: title.trim(),
-        culture_origin: cultureOrigin.trim() || null,
-        ingredients: ingredients.filter((i) => i.name.trim()),
-        instructions: instructions.filter((i) => i.trim()),
-        tags: tags.length ? tags : null,
-        prep_time_minutes: prepTime ? parseInt(prepTime) : null,
-        cook_time_minutes: cookTime ? parseInt(cookTime) : null,
-        servings: servings ? parseInt(servings) : null,
-      });
 
-      if (error) throw error;
+    setSaving(true);
+
+    // 3. Build payload with exact column names matching Supabase schema
+    const recipeData = {
+      user_id: userId,
+      title: title.trim(),
+      culture_origin: cultureOrigin.trim() || null,
+      ingredients: ingredients.filter((i) => i.name.trim()),
+      instructions: instructions.filter((i) => i.trim()),
+      tags: tags.length ? tags : null,
+      prep_time_minutes: prepTime ? parseInt(prepTime) : null,
+      cook_time_minutes: cookTime ? parseInt(cookTime) : null,
+      servings: servings ? parseInt(servings) : null,
+    };
+
+    // 2. Explicit error logging
+    console.log('[Heritage Kitchen] 📤 Inserting recipe with payload:', JSON.stringify(recipeData, null, 2));
+
+    try {
+      const { data, error, status, statusText } = await supabase.from('recipes').insert(recipeData).select();
+
+      console.log('[Heritage Kitchen] Insert response status:', status, statusText);
+
+      if (error) {
+        console.error('[Heritage Kitchen] ❌ Insert ERROR:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+        throw error;
+      }
+
+      console.log('[Heritage Kitchen] ✅ Insert SUCCESS. Returned data:', data);
       toast.success('Recipe saved!');
       navigate('/');
     } catch (e: any) {
@@ -126,32 +204,55 @@ export function RecipeForm() {
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <h1 className="text-lg font-heading font-bold text-foreground">New Recipe</h1>
-          <button
-            onClick={() => setShowImport(!showImport)}
-            className="min-w-[48px] min-h-[48px] flex items-center justify-center text-primary"
-            aria-label="Import from URL"
-          >
-            <Link className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Connection status indicator */}
+            {connectionOk === true && (
+              <span className="flex items-center gap-1 text-xs text-green-600 font-body">
+                <ShieldCheck className="w-4 h-4" /> DB OK
+              </span>
+            )}
+            {connectionOk === false && (
+              <span className="flex items-center gap-1 text-xs text-destructive font-body">
+                <ShieldAlert className="w-4 h-4" /> DB Error
+              </span>
+            )}
+            <button
+              onClick={() => setShowImport(!showImport)}
+              className="min-w-[48px] min-h-[48px] flex items-center justify-center text-primary"
+              aria-label="Manual import"
+            >
+              <ClipboardPaste className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="max-w-lg mx-auto px-4 pt-4">
-        {/* Import Section */}
+        {/* Auth warning */}
+        {!authLoading && !user && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-4 text-sm text-destructive font-body flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 shrink-0" />
+            You're not logged in. <button onClick={() => navigate('/auth')} className="underline font-semibold">Sign in</button> to save recipes.
+          </div>
+        )}
+
+        {/* Manual Import Section */}
         {showImport && (
           <div className="bg-card rounded-lg p-4 shadow-card mb-4 animate-fade-in">
-            <Label className="text-sm font-body font-medium text-foreground">Import from URL</Label>
-            <div className="flex gap-2 mt-2">
-              <Input
-                value={importUrl}
-                onChange={(e) => setImportUrl(e.target.value)}
-                placeholder="https://example.com/recipe"
-                className="flex-1 rounded-sm"
-              />
-              <Button onClick={handleImport} disabled={importing} size="sm">
-                {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Import'}
-              </Button>
-            </div>
+            <Label className="text-sm font-body font-medium text-foreground">Paste Recipe Text</Label>
+            <p className="text-xs text-muted-foreground font-body mt-1 mb-2">
+              Paste a full recipe. First line = title, lines starting with numbers = ingredients, the rest = instructions.
+            </p>
+            <Textarea
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+              placeholder={"Grandma's Pasta\n2 cups flour\n1 tsp salt\n3 eggs\nMix the flour and salt together.\nAdd eggs and knead the dough.\nRoll out and cut into strips."}
+              className="min-h-[160px] rounded-sm text-sm font-body"
+              rows={8}
+            />
+            <Button onClick={handleManualImport} size="sm" className="mt-2 w-full min-h-[44px]">
+              Parse & Fill Fields
+            </Button>
           </div>
         )}
 
