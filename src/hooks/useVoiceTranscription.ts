@@ -61,7 +61,7 @@ export function useVoiceTranscription({
       }
     };
 
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    recognition.onerror = (event: any) => {
       let msg = 'An error occurred during speech recognition.';
       if (event.error === 'not-allowed') {
         msg = 'Microphone access was blocked. Please allow microphone permissions.';
