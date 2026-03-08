@@ -512,6 +512,6 @@ export function RecipeForm() {
           )}
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }
