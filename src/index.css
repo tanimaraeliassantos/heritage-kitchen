@@ -6,47 +6,47 @@
 
 @layer base {
   :root {
-    --background: 40 20% 97%;
-    --foreground: 20 10% 15%;
+    --background: 42 30% 96%;
+    --foreground: 20 12% 14%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 20 10% 15%;
+    --card: 40 33% 98%;
+    --card-foreground: 20 12% 14%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 10% 15%;
+    --popover: 40 33% 98%;
+    --popover-foreground: 20 12% 14%;
 
-    --primary: 16 21% 46%;
-    --primary-foreground: 40 20% 97%;
+    --primary: 150 18% 50%;
+    --primary-foreground: 42 30% 96%;
 
-    --secondary: 28 30% 77%;
-    --secondary-foreground: 20 10% 15%;
+    --secondary: 16 45% 62%;
+    --secondary-foreground: 42 30% 96%;
 
-    --muted: 35 18% 92%;
-    --muted-foreground: 20 8% 45%;
+    --muted: 38 20% 91%;
+    --muted-foreground: 20 8% 42%;
 
-    --accent: 28 30% 77%;
-    --accent-foreground: 20 10% 15%;
+    --accent: 16 45% 62%;
+    --accent-foreground: 42 30% 96%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 15% 88%;
-    --input: 30 15% 88%;
-    --ring: 16 21% 46%;
+    --border: 35 18% 86%;
+    --input: 35 18% 86%;
+    --ring: 150 18% 50%;
 
-    --radius: 0.75rem;
+    --radius: 1.5rem;
 
-    --sidebar-background: 40 20% 97%;
-    --sidebar-foreground: 20 10% 15%;
-    --sidebar-primary: 16 21% 46%;
-    --sidebar-primary-foreground: 40 20% 97%;
-    --sidebar-accent: 35 18% 92%;
-    --sidebar-accent-foreground: 20 10% 15%;
-    --sidebar-border: 30 15% 88%;
-    --sidebar-ring: 16 21% 46%;
+    --sidebar-background: 42 30% 96%;
+    --sidebar-foreground: 20 12% 14%;
+    --sidebar-primary: 150 18% 50%;
+    --sidebar-primary-foreground: 42 30% 96%;
+    --sidebar-accent: 38 20% 91%;
+    --sidebar-accent-foreground: 20 12% 14%;
+    --sidebar-border: 35 18% 86%;
+    --sidebar-ring: 150 18% 50%;
 
-    --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.06);
+    --shadow-elevated: 0 8px 30px rgba(0, 0, 0, 0.10);
 
     --font-heading: 'Fraunces', serif;
     --font-body: 'Inter', sans-serif;
@@ -60,6 +60,8 @@
 
   body {
     @apply bg-background text-foreground font-body antialiased;
+    font-size: 16px;
+    line-height: 1.6;
   }
 
   h1, h2, h3, h4, h5, h6 {

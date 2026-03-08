@@ -17,6 +17,16 @@ export default {
         heading: ["'Fraunces'", "serif"],
         body: ["'Inter'", "sans-serif"],
       },
+      fontSize: {
+        xs: ['0.8125rem', '1.4'],
+        sm: ['0.9375rem', '1.5'],
+        base: ['1rem', '1.6'],
+        lg: ['1.125rem', '1.5'],
+        xl: ['1.3125rem', '1.4'],
+        '2xl': ['1.625rem', '1.3'],
+        '3xl': ['2rem', '1.2'],
+        '4xl': ['2.5rem', '1.1'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -64,8 +74,9 @@ export default {
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 4px)",
+        sm: "calc(var(--radius) - 8px)",
+        pill: "9999px",
       },
       keyframes: {
         "accordion-down": {
