@@ -14,7 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      recipe_media: {
+        Row: {
+          caption: string | null
+          created_at: string
+          file_url: string
+          id: string
+          media_type: string
+          recipe_id: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          file_url: string
+          id?: string
+          media_type: string
+          recipe_id: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          file_url?: string
+          id?: string
+          media_type?: string
+          recipe_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_media_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          cook_time_minutes: number | null
+          created_at: string
+          culture_origin: string | null
+          id: string
+          image_url: string | null
+          ingredients: Json
+          instructions: string[]
+          prep_time_minutes: number | null
+          servings: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cook_time_minutes?: number | null
+          created_at?: string
+          culture_origin?: string | null
+          id?: string
+          image_url?: string | null
+          ingredients?: Json
+          instructions?: string[]
+          prep_time_minutes?: number | null
+          servings?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cook_time_minutes?: number | null
+          created_at?: string
+          culture_origin?: string | null
+          id?: string
+          image_url?: string | null
+          ingredients?: Json
+          instructions?: string[]
+          prep_time_minutes?: number | null
+          servings?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
