@@ -1,14 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Users, Trash2 } from 'lucide-react';
+import { ArrowLeft, Clock, Users, Trash2, Pencil, X, Save, Plus, Minus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { UnitToggle } from '@/components/UnitToggle';
 import { MediaUploader } from '@/components/MediaUploader';
 import { convertUnit, type UnitSystem, parseIngredientAmount } from '@/utils/unitConverter';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import heroImage from '@/assets/hero-kitchen.jpg';
+
+interface EditableRecipe {
+  title: string;
+  culture_origin: string;
+  prep_time_minutes: number | null;
+  cook_time_minutes: number | null;
+  servings: number | null;
+  tags: string[];
+  ingredients: any[];
+  instructions: string[];
+}
 
 const RecipeDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +31,9 @@ const RecipeDetail = () => {
   const [media, setMedia] = useState<any[]>([]);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editData, setEditData] = useState<EditableRecipe | null>(null);
 
   const fetchData = async () => {
     if (!id) return;
@@ -34,6 +50,52 @@ const RecipeDetail = () => {
     fetchData();
   }, [id]);
 
+  const startEditing = () => {
+    if (!recipe) return;
+    setEditData({
+      title: recipe.title || '',
+      culture_origin: recipe.culture_origin || '',
+      prep_time_minutes: recipe.prep_time_minutes,
+      cook_time_minutes: recipe.cook_time_minutes,
+      servings: recipe.servings,
+      tags: recipe.tags || [],
+      ingredients: (recipe.ingredients as any[]).map((ing: any) =>
+        typeof ing === 'string' ? ing : `${ing.amount || ''} ${ing.unit || ''} ${ing.name || ''}`.trim()
+      ),
+      instructions: [...(recipe.instructions as string[])],
+    });
+    setEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setEditing(false);
+    setEditData(null);
+  };
+
+  const handleSave = async () => {
+    if (!editData || !id) return;
+    setSaving(true);
+    const { error } = await supabase.from('recipes').update({
+      title: editData.title,
+      culture_origin: editData.culture_origin || null,
+      prep_time_minutes: editData.prep_time_minutes,
+      cook_time_minutes: editData.cook_time_minutes,
+      servings: editData.servings,
+      tags: editData.tags,
+      ingredients: editData.ingredients as any,
+      instructions: editData.instructions,
+    }).eq('id', id);
+    setSaving(false);
+    if (error) {
+      toast.error('Failed to save changes.');
+    } else {
+      toast.success('Recipe updated!');
+      setEditing(false);
+      setEditData(null);
+      fetchData();
+    }
+  };
+
   const handleDelete = async () => {
     if (!confirm('Delete this recipe permanently?')) return;
     const { error } = await supabase.from('recipes').delete().eq('id', id!);
@@ -43,6 +105,40 @@ const RecipeDetail = () => {
       toast.success('Recipe deleted.');
       navigate('/');
     }
+  };
+
+  const updateIngredient = (index: number, value: string) => {
+    if (!editData) return;
+    const updated = [...editData.ingredients];
+    updated[index] = value;
+    setEditData({ ...editData, ingredients: updated });
+  };
+
+  const addIngredient = () => {
+    if (!editData) return;
+    setEditData({ ...editData, ingredients: [...editData.ingredients, ''] });
+  };
+
+  const removeIngredient = (index: number) => {
+    if (!editData) return;
+    setEditData({ ...editData, ingredients: editData.ingredients.filter((_, i) => i !== index) });
+  };
+
+  const updateInstruction = (index: number, value: string) => {
+    if (!editData) return;
+    const updated = [...editData.instructions];
+    updated[index] = value;
+    setEditData({ ...editData, instructions: updated });
+  };
+
+  const addInstruction = () => {
+    if (!editData) return;
+    setEditData({ ...editData, instructions: [...editData.instructions, ''] });
+  };
+
+  const removeInstruction = (index: number) => {
+    if (!editData) return;
+    setEditData({ ...editData, instructions: editData.instructions.filter((_, i) => i !== index) });
   };
 
   if (loading) {
@@ -80,7 +176,6 @@ const RecipeDetail = () => {
         </li>
       );
     }
-    // Object format: { name, amount, unit }
     if (ing.amount && ing.unit) {
       const converted = convertUnit(parseFloat(ing.amount), ing.unit, unitSystem);
       return (
@@ -95,6 +190,8 @@ const RecipeDetail = () => {
       </li>
     );
   };
+
+  const isOwner = user && recipe.user_id === user.id;
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -113,63 +210,202 @@ const RecipeDetail = () => {
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
+        {isOwner && !editing && (
+          <button
+            onClick={startEditing}
+            className="absolute top-4 right-4 w-10 h-10 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-card"
+            aria-label="Edit recipe"
+          >
+            <Pencil className="w-4 h-4 text-foreground" />
+          </button>
+        )}
       </div>
 
       <div className="px-4 max-w-lg mx-auto -mt-8 relative z-10">
-        <h1 className="text-2xl font-heading font-bold text-foreground">{recipe.title}</h1>
-        {recipe.culture_origin && (
-          <p className="text-sm text-muted-foreground font-body mt-1">{recipe.culture_origin}</p>
+        {/* Edit mode toolbar */}
+        {editing && editData && (
+          <div className="flex gap-2 mb-4">
+            <Button onClick={handleSave} disabled={saving} className="flex-1 min-h-[48px]">
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? 'Saving…' : 'Save'}
+            </Button>
+            <Button variant="outline" onClick={cancelEditing} disabled={saving} className="min-h-[48px]">
+              <X className="w-4 h-4 mr-2" />
+              Cancel
+            </Button>
+          </div>
         )}
 
-        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground font-body">
-          {totalTime > 0 && (
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" /> {totalTime} min
-            </span>
-          )}
-          {recipe.servings && (
-            <span className="flex items-center gap-1">
-              <Users className="w-3.5 h-3.5" /> {recipe.servings} servings
-            </span>
-          )}
-        </div>
+        {/* Title */}
+        {editing && editData ? (
+          <Input
+            value={editData.title}
+            onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+            className="text-2xl font-heading font-bold"
+            placeholder="Recipe title"
+          />
+        ) : (
+          <h1 className="text-2xl font-heading font-bold text-foreground">{recipe.title}</h1>
+        )}
 
-        {recipe.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {recipe.tags.map((tag: string) => (
-              <span key={tag} className="text-[11px] bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full font-body">
-                {tag}
-              </span>
-            ))}
+        {/* Culture Origin */}
+        {editing && editData ? (
+          <Input
+            value={editData.culture_origin}
+            onChange={(e) => setEditData({ ...editData, culture_origin: e.target.value })}
+            className="mt-2 text-sm font-body"
+            placeholder="Culture / Origin"
+          />
+        ) : (
+          recipe.culture_origin && (
+            <p className="text-sm text-muted-foreground font-body mt-1">{recipe.culture_origin}</p>
+          )
+        )}
+
+        {/* Meta (times, servings) */}
+        {editing && editData ? (
+          <div className="grid grid-cols-3 gap-2 mt-3">
+            <div>
+              <label className="text-[11px] text-muted-foreground font-body">Prep (min)</label>
+              <Input
+                type="number"
+                value={editData.prep_time_minutes ?? ''}
+                onChange={(e) => setEditData({ ...editData, prep_time_minutes: e.target.value ? parseInt(e.target.value) : null })}
+              />
+            </div>
+            <div>
+              <label className="text-[11px] text-muted-foreground font-body">Cook (min)</label>
+              <Input
+                type="number"
+                value={editData.cook_time_minutes ?? ''}
+                onChange={(e) => setEditData({ ...editData, cook_time_minutes: e.target.value ? parseInt(e.target.value) : null })}
+              />
+            </div>
+            <div>
+              <label className="text-[11px] text-muted-foreground font-body">Servings</label>
+              <Input
+                type="number"
+                value={editData.servings ?? ''}
+                onChange={(e) => setEditData({ ...editData, servings: e.target.value ? parseInt(e.target.value) : null })}
+              />
+            </div>
           </div>
+        ) : (
+          <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground font-body">
+            {totalTime > 0 && (
+              <span className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" /> {totalTime} min
+              </span>
+            )}
+            {recipe.servings && (
+              <span className="flex items-center gap-1">
+                <Users className="w-3.5 h-3.5" /> {recipe.servings} servings
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Tags */}
+        {editing && editData ? (
+          <div className="mt-3">
+            <label className="text-[11px] text-muted-foreground font-body">Tags (comma-separated)</label>
+            <Input
+              value={editData.tags.join(', ')}
+              onChange={(e) => setEditData({ ...editData, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
+              placeholder="e.g. Mexican, Holiday, Vegan"
+            />
+          </div>
+        ) : (
+          recipe.tags?.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {recipe.tags.map((tag: string) => (
+                <span key={tag} className="text-[11px] bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full font-body">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )
         )}
 
         {/* Ingredients */}
         <div className="mt-8">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-heading font-bold text-foreground">Ingredients</h2>
-            <UnitToggle value={unitSystem} onChange={setUnitSystem} />
+            {!editing && <UnitToggle value={unitSystem} onChange={setUnitSystem} />}
           </div>
           <div className="bg-card rounded-lg shadow-card p-4">
-            <ul>
-              {(recipe.ingredients as any[]).map((ing, i) => renderIngredient(ing, i))}
-            </ul>
+            {editing && editData ? (
+              <div className="space-y-2">
+                {editData.ingredients.map((ing, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <Input
+                      value={typeof ing === 'string' ? ing : `${ing.amount || ''} ${ing.unit || ''} ${ing.name || ''}`.trim()}
+                      onChange={(e) => updateIngredient(i, e.target.value)}
+                      className="flex-1 text-sm font-body"
+                      placeholder="e.g. 200g flour"
+                    />
+                    <button
+                      onClick={() => removeIngredient(i)}
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-destructive hover:bg-destructive/10 shrink-0"
+                      aria-label="Remove ingredient"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={addIngredient} className="w-full mt-2 min-h-[40px]">
+                  <Plus className="w-4 h-4 mr-1" /> Add Ingredient
+                </Button>
+              </div>
+            ) : (
+              <ul>
+                {(recipe.ingredients as any[]).map((ing, i) => renderIngredient(ing, i))}
+              </ul>
+            )}
           </div>
         </div>
 
         {/* Instructions */}
         <div className="mt-8">
           <h2 className="text-lg font-heading font-bold text-foreground mb-3">Instructions</h2>
-          <div className="space-y-4">
-            {(recipe.instructions as string[]).map((step, i) => (
-              <div key={i} className="flex gap-3 animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
-                <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-body font-semibold flex items-center justify-center shrink-0 mt-0.5">
-                  {i + 1}
+          {editing && editData ? (
+            <div className="space-y-3">
+              {editData.instructions.map((step, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-body font-semibold flex items-center justify-center shrink-0 mt-1">
+                    {i + 1}
+                  </div>
+                  <Textarea
+                    value={step}
+                    onChange={(e) => updateInstruction(i, e.target.value)}
+                    className="flex-1 text-sm font-body min-h-[60px]"
+                    placeholder="Describe this step…"
+                  />
+                  <button
+                    onClick={() => removeInstruction(i)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-destructive hover:bg-destructive/10 shrink-0 mt-1"
+                    aria-label="Remove step"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
                 </div>
-                <p className="text-sm font-body text-foreground leading-relaxed">{step}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={addInstruction} className="w-full min-h-[40px]">
+                <Plus className="w-4 h-4 mr-1" /> Add Step
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {(recipe.instructions as string[]).map((step, i) => (
+                <div key={i} className="flex gap-3 animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
+                  <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-body font-semibold flex items-center justify-center shrink-0 mt-0.5">
+                    {i + 1}
+                  </div>
+                  <p className="text-sm font-body text-foreground leading-relaxed">{step}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Time Capsule - Memories */}
@@ -206,14 +442,16 @@ const RecipeDetail = () => {
         </div>
 
         {/* Delete */}
-        <Button
-          variant="ghost"
-          onClick={handleDelete}
-          className="w-full mt-10 text-destructive min-h-[48px]"
-        >
-          <Trash2 className="w-4 h-4 mr-2" />
-          Delete Recipe
-        </Button>
+        {isOwner && !editing && (
+          <Button
+            variant="ghost"
+            onClick={handleDelete}
+            className="w-full mt-10 text-destructive min-h-[48px]"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete Recipe
+          </Button>
+        )}
       </div>
     </div>
   );
