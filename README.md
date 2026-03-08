@@ -6,7 +6,7 @@ Heritage Kitchen allows users to easily add their favorite recipes, view ingredi
 
 See the hosted application here.
 
-### Project Overview
+## Project Overview
 
 This project was built during the SheBuilds Hackathon with a specific mission: to create a digital space that simplifies recipe management for busy households. Key design principles included:
 
@@ -16,7 +16,7 @@ SAHM-Friendly UX: One-handed navigation zones that keep primary actions within r
 
 Modern Aesthetics: A warm, inviting color palette and smooth animations powered by Framer Motion to make the experience both fun and functional.
 
-### How it was built
+## How it was built
 
 Heritage Kitchen was developed during the SheBuilds Hackathon using an AI-first workflow. Instead of traditional line-by-line coding, I utilized Lovable to orchestrate the full-stack architecture.
 
