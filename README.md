@@ -16,7 +16,7 @@ SAHM-Friendly UX: One-handed navigation zones that keep primary actions within r
 
 Modern Aesthetics: A warm, inviting color palette and smooth animations powered by Framer Motion to make the experience both fun and functional.
 
-## How it was built
+### How it was built
 
 Heritage Kitchen was developed during the SheBuilds Hackathon using an AI-first workflow. Instead of traditional line-by-line coding, I utilized Lovable to orchestrate the full-stack architecture.
 
@@ -29,23 +29,28 @@ Rapid Prototyping: By leveraging AI as a pair programmer, I was able to move fro
 ## Start the App
 
 **Install dependencies**
+
 ```
 Bash
 npm install
 ```
 
 **Run locally**
+
 ```
 Bash
 npm run start
 ```
+
 **Deploy**
+
 ```
 Bash
 npm run deploy
 ```
 
 ## Features
+
 - Personalized Recipe Library: Easily add and manage your family's favorite dishes.
 
 - One-Handed Navigation: Optimized UI placement for quick access to actions while multitasking.
@@ -55,6 +60,7 @@ npm run deploy
 - Smooth Interaction: Intuitive animations and tactile feedback for a premium user experience.
 
 ## Technologies
+
 Frontend: React with Tailwind CSS
 
 Animations: Framer Motion
@@ -64,7 +70,9 @@ Database/Backend: Supabase
 Deployment: Vercel
 
 ## Author
+
 Your Name
 
 ### Version
+
 1.0.0
